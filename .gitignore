@@ -1,0 +1,9 @@
+[Bb]in/
+[Bb]uild/
+[Rr]elease/
+[Dd]ebug/
+.[Ss]ettings/
+.cproject
+.project
+[Ll]ib/libengine.so
+[Ll]ib/libengined.so
