@@ -17,7 +17,8 @@ namespace ge
         virtual std::string init_engine(std::string init_options) = 0;
         virtual bool read_event(event& event)                     = 0;
         virtual void uninit_engine()                              = 0;
-        virtual void render_triangle(triangle& tr)                = 0;
+        virtual void render(triangle& tr)                         = 0;
+        virtual void render(texture& tx)                          = 0;
         virtual void swap_buffers()                               = 0;
         virtual float get_time()                                  = 0;
         virtual triangle transform_triangle(const triangle& trSrc,
@@ -28,5 +29,6 @@ namespace ge
 
     IEngine* GE_DECLSPEC getInstance();
     std::istream& GE_DECLSPEC operator>>(std::istream& is, vertex& v);
-    std::istream& GE_DECLSPEC operator>>(std::istream& is, triangle& v);
+    std::istream& GE_DECLSPEC operator>>(std::istream& is, triangle& tr);
+    std::istream& GE_DECLSPEC operator>>(std::istream& is, texture& tx);
 }

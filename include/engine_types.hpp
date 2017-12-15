@@ -41,6 +41,12 @@ namespace ge
         float y = 0.f;
     };
 
+    struct GE_DECLSPEC text_vertex
+    {
+        vertex coord;
+        vertex norm_coord;
+    };
+
     struct GE_DECLSPEC triangle
     {
         std::vector<vertex> v = { vertex(), vertex(), vertex() };
@@ -48,7 +54,7 @@ namespace ge
 
     struct GE_DECLSPEC texture
     {
-        std::vector<vertex> coord      = { vertex(), vertex(), vertex() };
-        std::vector<vertex> norm_coord = { vertex(), vertex(), vertex() };
+        std::vector<vertex> coords     = { vertex(), vertex(), vertex() };
+        std::vector<vertex> tex_coords = { vertex(), vertex(), vertex() };
     };
 }

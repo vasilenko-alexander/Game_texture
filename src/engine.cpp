@@ -108,7 +108,8 @@ namespace ge
         std::string init_engine(std::string init_options) override;
         bool read_event(event& event) override;
         void uninit_engine() override;
-        void render_triangle(triangle& tr) override;
+        void render(triangle& tr) override;
+        void render(texture& tx) override;
         void swap_buffers() override;
         float get_time() override;
         triangle transform_triangle(const triangle& trSrc,
@@ -143,6 +144,15 @@ namespace ge
         return is;
     }
 
+    std::istream& operator>>(std::istream& is, text_vertex& tv)
+    {
+        is >> tv.coord.x;
+        is >> tv.coord.y;
+        is >> tv.norm_coord.x;
+        is >> tv.norm_coord.y;
+        return is;
+    }
+
     std::ostream& operator<<(std::ostream& os, vertex& v)
     {
         os << "(" << v.x << ";" << v.y << ")";
@@ -163,6 +173,16 @@ namespace ge
         os << tr.v[1] << " ";
         os << tr.v[2] << std::endl;
         return os;
+    }
+
+    std::istream& operator>>(std::istream& is, texture& tx)
+    {
+        for (size_t i = 0; i < tx.tex_coords.size(); ++i)
+        {
+            is >> tx.coords[i];
+            is >> tx.tex_coords[i];
+        }
+        return is;
     }
 
     Engine::Engine()
@@ -311,6 +331,7 @@ namespace ge
         glAttachShader(program, fs);
 
         glBindAttribLocation(program, 1, "coords");
+        glBindAttribLocation(program, 2, "tex_coords");
 
         glLinkProgram(program);
 
@@ -484,7 +505,7 @@ namespace ge
         return hasEvent;
     }
 
-    void Engine::render_triangle(triangle& tr)
+    void Engine::render(triangle& tr)
     {
 
         GLuint coordAttrID = glGetAttribLocation(shader_program, "coords");
@@ -511,6 +532,48 @@ namespace ge
         // unbind VBO
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         GE_GL_CHECK();
+    }
+
+    void Engine::render(texture& tx)
+    {
+        int coord_count     = 2;
+        GLuint coord_id     = glGetAttribLocation(shader_program, "coords");
+        GLuint tex_coord_id = glGetAttribLocation(shader_program, "tex_coords");
+
+        GLuint buffer;
+        glGenBuffers(1, &buffer);
+        GE_GL_CHECK()
+        glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        GE_GL_CHECK()
+
+        glBufferData(GL_ARRAY_BUFFER, sizeof(tx), nullptr, GL_STATIC_DRAW);
+        GE_GL_CHECK()
+#define BUFFER_OFFSET(x) ((char*)NULL + (x))
+
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(tx.coords), &tx.coords[0]);
+        GE_GL_CHECK()
+        glBufferSubData(GL_ARRAY_BUFFER,
+                        sizeof(tx.coords),
+                        sizeof(tx.tex_coords),
+                        &tx.tex_coords[0]);
+        GE_GL_CHECK()
+
+        glVertexAttribPointer(coord_id, coord_count, GL_FLOAT, GL_FALSE, 0, 0);
+        GE_GL_CHECK()
+        glEnableVertexAttribArray(coord_id);
+        GE_GL_CHECK()
+
+        glVertexAttribPointer(tex_coord_id,
+                              coord_count,
+                              GL_FLOAT,
+                              GL_FALSE,
+                              0,
+                              BUFFER_OFFSET(sizeof(tx.coords)));
+        GE_GL_CHECK()
+        glEnableVertexAttribArray(tex_coord_id);
+        GE_GL_CHECK()
+#undef BUFFER_OFFSET
+        glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 
     void Engine::fill_background()
@@ -559,6 +622,7 @@ namespace ge
         GE_GL_CHECK();
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         // copy data to GPU texture object
         GLint mip_level = 0;

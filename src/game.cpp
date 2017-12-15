@@ -35,7 +35,7 @@ int main(int /*argn*/, char* /*args*/ [])
                 break;
             }
         }
-        const std::string vertexes_path = "./config/texture_coord.txt";
+        const std::string vertexes_path = "./config/texture_vertexes.txt";
 
         std::ifstream file(vertexes_path);
         if (!file.is_open())
@@ -44,13 +44,26 @@ int main(int /*argn*/, char* /*args*/ [])
             continue;
         }
 
-        ge::triangle trLeft;
-        ge::triangle trRight;
+        ge::texture txLeft, txRight;
 
-        file >> trRight >> trLeft;
+        float time    = gameEngine->get_time();
+        float sin_val = std::sin(time);
+        float cos_val = std::cos(time);
 
-        gameEngine->render_triangle(trLeft);
-        gameEngine->render_triangle(trRight);
+        file >> txRight >> txLeft;
+
+        for (size_t v_i = 0, max_i = txRight.tex_coords.size(); v_i < max_i;
+             ++v_i)
+        {
+            txRight.tex_coords[v_i].x -= cos_val;
+            txLeft.tex_coords[v_i].x -= cos_val;
+
+            txRight.tex_coords[v_i].y += sin_val;
+            txLeft.tex_coords[v_i].y += sin_val;
+        }
+
+        gameEngine->render(txLeft);
+        gameEngine->render(txRight);
 
         gameEngine->swap_buffers();
     }
